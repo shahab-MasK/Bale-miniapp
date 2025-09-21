@@ -1,80 +1,136 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>مینی‌اپ نمونه بله — ارسال پیام به بازو</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>برنامه روزانه دانش‌آموز</title>
+<style>
+/* فونت و بدنه */
+body {
+  font-family: 'Vazirmatn', sans-serif;
+  background: linear-gradient(135deg,#f0f4f8,#d9e2ec);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 10px;
+}
 
-  <!-- کتابخانهٔ مینی‌اپ بله -->
-  <script src="https://tapi.bale.ai/miniapp.js?3"></script>
+/* کارت فرم */
+.card {
+  background-color: #fff;
+  padding: 25px 20px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
 
-  <style>
-    body{font-family: Vazirmatn,system-ui; direction: rtl; padding: 24px; max-width:700px; margin:0 auto;}
-    h1{font-size:22px; margin-bottom:16px}
-    input[type="text"]{width:100%; padding:10px; font-size:16px; box-sizing:border-box; margin-bottom:10px}
-    button{padding:10px 14px; font-size:16px; cursor:pointer}
-    #status{margin-top:12px; color: #333}
-  </style>
+/* تیتر */
+.card h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* فیلدها */
+input, select {
+  width: 100%;
+  padding: 12px 15px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  border: 1.5px solid #ccc;
+  font-size: 16px;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+}
+
+input:focus, select:focus {
+  border-color: #5c7cfa;
+  outline: none;
+}
+
+/* دکمه‌ها */
+button {
+  padding: 12px 18px;
+  font-size: 16px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 10px;
+  width: 100%;
+  background-color: #5c7cfa;
+  color: white;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #4b6edc;
+}
+
+/* پیام وضعیت */
+#status {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #555;
+  min-height: 20px;
+  text-align: center;
+}
+</style>
 </head>
 <body>
-  <h1>ارسال سریع به بازو</h1>
-  <p>یک متن وارد کن و دکمهٔ «ارسال به بازو» را بزن. (این داده به بازوی بله می‌رود.)</p>
+<div class="card">
+  <h2>افزودن برنامه روزانه</h2>
 
-  <input id="txt" type="text" placeholder="اینجا بنویس..." />
-  <div>
-    <button id="sendBtn">ارسال به بازو</button>
-    <button id="closeBtn" style="margin-right:8px">بستن مینی‌اپ</button>
-  </div>
+  <select id="subject">
+    <option value="" disabled selected>انتخاب درس</option>
+    <option>ریاضی</option>
+    <option>فیزیک</option>
+    <option>شیمی</option>
+    <option>زبان انگلیسی</option>
+    <option>ادبیات</option>
+  </select>
 
-  <p id="status">در حال آماده‌سازی...</p>
+  <input type="time" id="startTime" placeholder="زمان شروع">
+  <input type="time" id="endTime" placeholder="زمان پایان">
+  <input type="text" id="note" placeholder="یادداشت (اختیاری)">
 
-  <script>
-    // دسترسی به API مینی‌اپ بله
-    const Bale = window.Bale?.WebApp;
-    const status = document.getElementById('status');
+  <button id="saveBtn">افزودن برنامه</button>
+  <p id="status"></p>
+</div>
 
-    if (!Bale || !Bale.isMiniAppSupported) {
-      status.innerText = 'این صفحه باید داخل اپ بله به‌عنوان مینی‌اپ باز شود.';
-      // برای راحتی می‌توانیم بازبینی کنیم که initData وجود دارد یا خیر
-    } else {
-      Bale.ready();
-      status.innerText = 'مینی‌اپ آماده است — می‌توانید پیام بفرستید. نسخه: ' + (Bale.version || '؟');
+<script>
+// ذخیره برنامه‌ها در localStorage
+const saveBtn = document.getElementById('saveBtn');
+const status = document.getElementById('status');
 
-      // نمایش initData (اختیاری — برای دیباگ)
-      try {
-        console.log('initDataUnsafe:', Bale.initDataUnsafe);
-      } catch (e) { /* ignore */ }
+saveBtn.addEventListener('click', () => {
+  const subject = document.getElementById('subject').value;
+  const start = document.getElementById('startTime').value;
+  const end = document.getElementById('endTime').value;
+  const note = document.getElementById('note').value;
 
-      document.getElementById('sendBtn').addEventListener('click', () => {
-        const txt = document.getElementById('txt').value.trim();
-        if (!txt) {
-          status.innerText = 'لطفاً متن را وارد کنید.';
-          return;
-        }
+  if(!subject || !start || !end){
+    status.innerText = "لطفاً همه فیلدهای اصلی را پر کنید.";
+    return;
+  }
 
-        // payload را بساز
-        const payload = {
-          type: 'message_from_web',
-          text: txt,
-          ts: Date.now()
-        };
+  const program = { subject, start, end, note };
 
-        // ارسال داده به بازو — این داده به‌صورت update به بازو می‌رسد
-        // پس از sendData می‌توان مینی‌اپ را بست یا پیام موفق نشان داد
-        try {
-          Bale.sendData(JSON.stringify(payload));
-          status.innerText = 'پیام ارسال شد — منتظر تأیید از بازو بمانید...';
-        } catch (err) {
-          console.error(err);
-          status.innerText = 'خطا در ارسال داده: ' + (err.message || err);
-        }
-      });
+  // گرفتن داده‌های قبلی
+  let programs = JSON.parse(localStorage.getItem('dailyPrograms') || "[]");
+  programs.push(program);
+  localStorage.setItem('dailyPrograms', JSON.stringify(programs));
 
-      // دکمهٔ بستن مینی‌اپ
-      document.getElementById('closeBtn').addEventListener('click', () => {
-        Bale.close();
-      });
-    }
-  </script>
+  status.innerText = "برنامه اضافه شد ✅";
+
+  // پاک کردن فیلدها
+  document.getElementById('subject').value = "";
+  document.getElementById('startTime').value = "";
+  document.getElementById('endTime').value = "";
+  document.getElementById('note').value = "";
+});
+</script>
 </body>
 </html>
