@@ -5,132 +5,139 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>برنامه روزانه دانش‌آموز</title>
 <style>
-/* فونت و بدنه */
 body {
   font-family: 'Vazirmatn', sans-serif;
-  background: linear-gradient(135deg,#f0f4f8,#d9e2ec);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+  background: #f0f4f8;
   margin: 0;
   padding: 10px;
 }
-
-/* کارت فرم */
-.card {
-  background-color: #fff;
-  padding: 25px 20px;
+.container {
+  max-width: 450px;
+  margin: auto;
+  background: #fff;
   border-radius: 20px;
+  padding: 20px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-  width: 100%;
-  max-width: 400px;
-  text-align: center;
 }
-
-/* تیتر */
-.card h2 {
-  margin-bottom: 20px;
+h2 {
+  text-align: center;
   color: #333;
 }
-
-/* فیلدها */
-input, select {
-  width: 100%;
-  padding: 12px 15px;
-  margin-bottom: 15px;
-  border-radius: 12px;
-  border: 1.5px solid #ccc;
-  font-size: 16px;
-  box-sizing: border-box;
-  transition: border-color 0.3s;
+.zang {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
-
-input:focus, select:focus {
-  border-color: #5c7cfa;
-  outline: none;
+.zang label {
+  width: 60px;
 }
-
-/* دکمه‌ها */
+select {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
 button {
-  padding: 12px 18px;
-  font-size: 16px;
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
   border: none;
   border-radius: 12px;
-  cursor: pointer;
-  margin-top: 10px;
-  width: 100%;
   background-color: #5c7cfa;
   color: white;
-  transition: background-color 0.3s;
+  font-size: 16px;
+  cursor: pointer;
 }
-
 button:hover {
   background-color: #4b6edc;
 }
-
-/* پیام وضعیت */
 #status {
   margin-top: 12px;
-  font-size: 14px;
-  color: #555;
-  min-height: 20px;
   text-align: center;
+  min-height: 20px;
+  color: #555;
 }
 </style>
 </head>
 <body>
-<div class="card">
-  <h2>افزودن برنامه روزانه</h2>
 
-  <select id="subject">
-    <option value="" disabled selected>انتخاب درس</option>
-    <option>ریاضی</option>
-    <option>فیزیک</option>
-    <option>شیمی</option>
-    <option>زبان انگلیسی</option>
-    <option>ادبیات</option>
-  </select>
+<div class="container">
+  <h2>برنامه روزانه</h2>
 
-  <input type="time" id="startTime" placeholder="زمان شروع">
-  <input type="time" id="endTime" placeholder="زمان پایان">
-  <input type="text" id="note" placeholder="یادداشت (اختیاری)">
+  <div id="zangContainer"></div>
 
-  <button id="saveBtn">افزودن برنامه</button>
+  <button id="saveBtn">ذخیره برنامه</button>
   <p id="status"></p>
 </div>
 
 <script>
-// ذخیره برنامه‌ها در localStorage
+// لیست کلاس‌ها
+const classes = ["ریاضی", "فیزیک", "شیمی", "زبان انگلیسی", "ادبیات"];
+
+// شبیه‌سازی ظرفیت کلاس‌ها (هر کلاس حداکثر 35 نفر)
+let classCapacity = {};
+classes.forEach(c => classCapacity[c] = 35);
+
+// ایجاد فرم 35 زنگ
+const zangContainer = document.getElementById('zangContainer');
+for(let i=1;i<=35;i++){
+  const div = document.createElement('div');
+  div.className = "zang";
+  div.innerHTML = `
+    <label>زنگ ${i}</label>
+    <select id="zang${i}">
+      <option value="">انتخاب کلاس</option>
+      ${classes.map(c => `<option value="${c}">${c}</option>`).join('')}
+    </select>
+  `;
+  zangContainer.appendChild(div);
+}
+
+// ذخیره برنامه با بررسی ظرفیت از طریق بازوی بله
 const saveBtn = document.getElementById('saveBtn');
 const status = document.getElementById('status');
 
-saveBtn.addEventListener('click', () => {
-  const subject = document.getElementById('subject').value;
-  const start = document.getElementById('startTime').value;
-  const end = document.getElementById('endTime').value;
-  const note = document.getElementById('note').value;
+saveBtn.addEventListener('click', ()=>{
+  let programs = [];
+  let allOk = true;
 
-  if(!subject || !start || !end){
-    status.innerText = "لطفاً همه فیلدهای اصلی را پر کنید.";
-    return;
+  for(let i=1;i<=35;i++){
+    const sel = document.getElementById(`zang${i}`);
+    const val = sel.value;
+    if(val){
+      // ارسال داده به بازوی بله
+      // Bale.WebApp.sendData باید داخل مینی‌اپ بله اجرا شود
+      if(window.Bale && Bale.WebApp){
+        Bale.WebApp.sendData({zang:i, class:val}).then(response=>{
+          // response باید از بازو وضعیت ظرفیت را بدهد
+          if(response.status === "full"){
+            sel.disabled = true;
+            allOk = false;
+            status.innerText = `ظرفیت کلاس ${val} پر است.`;
+          } else {
+            programs.push({zang:i, class:val});
+          }
+        }).catch(err=>{
+          console.log(err);
+          status.innerText = "خطا در اتصال به بازو.";
+          allOk = false;
+        });
+      } else {
+        // برای تست آفلاین: ذخیره در localStorage
+        programs.push({zang:i, class:val});
+      }
+    }
   }
 
-  const program = { subject, start, end, note };
-
-  // گرفتن داده‌های قبلی
-  let programs = JSON.parse(localStorage.getItem('dailyPrograms') || "[]");
-  programs.push(program);
-  localStorage.setItem('dailyPrograms', JSON.stringify(programs));
-
-  status.innerText = "برنامه اضافه شد ✅";
-
-  // پاک کردن فیلدها
-  document.getElementById('subject').value = "";
-  document.getElementById('startTime').value = "";
-  document.getElementById('endTime').value = "";
-  document.getElementById('note').value = "";
+  // اگر همه اوکی بود
+  if(allOk){
+    status.innerText = "برنامه با موفقیت ثبت شد ✅";
+    localStorage.setItem('dailyPrograms', JSON.stringify(programs));
+  }
 });
 </script>
+
 </body>
 </html>
+  
