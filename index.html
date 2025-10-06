@@ -3,53 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مینی اپ بله</title>
+    <title>نوار لودینگ</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
             background-color: #f4f4f9;
         }
-        .container {
-            text-align: center;
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+        .loading-container {
+            width: 80%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
         }
-        h1 {
-            color: #333;
-        }
-        button {
+
+        .loading-bar {
+            width: 0%;
+            height: 100%;
             background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 15px 32px;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s;
+            border-radius: 10px;
+            position: absolute;
+            transition: width 0.5s ease-in-out;
         }
-        button:hover {
-            background-color: #45a049;
+
+        .loading-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            color: white;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>آیا شما آماده‌اید؟</h1>
-        <button id="yesButton">بله</button>
-        <p id="message" style="margin-top: 20px; font-size: 18px;"></p>
+
+    <div class="loading-container">
+        <div class="loading-bar" id="loadingBar"></div>
+        <div class="loading-text" id="loadingText">در حال بارگذاری...</div>
     </div>
 
     <script>
-        document.getElementById('yesButton').addEventListener('click', function() {
-            document.getElementById('message').textContent = "بله، شما آماده‌اید!";
-        });
+        let loadingBar = document.getElementById("loadingBar");
+        let loadingText = document.getElementById("loadingText");
+        let width = 0;
+
+        function load() {
+            if (width >= 100) {
+                clearInterval(interval);
+                loadingText.textContent = "بارگذاری کامل شد!";
+            } else {
+                width++;
+                loadingBar.style.width = width + "%";
+            }
+        }
+
+        let interval = setInterval(load, 50); // این بازه زمانی را می‌توانید تنظیم کنید
     </script>
+
 </body>
 </html>
