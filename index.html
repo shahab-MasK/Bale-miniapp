@@ -1,162 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Telegram Mini Apps Vanilla JS Sample App</title>
+  <head>
+    <!-- Metadata and Page Configuration -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Prevents automatic formatting of specific content types -->
+    <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+
+    <!-- Page Title -->
+    <title>Telegram Mini App</title>
+
+    <!-- Telegram WebApp Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+  </head>
+  <body>
+    <!-- Main App Container -->
+    <div id="app">
+      <!-- App Header -->
+      <h1>Telegram Mini App Demo</h1>
+
+      <!-- Content Section -->
+      <div id="content">
+        <!-- Display StartApp Parameter -->
+        <p>
+          <strong>StartApp Parameter:</strong>
+          <span id="startapp-param">Loading...</span>
+        </p>
+
+        <!-- Display Telegram Data -->
+        <p><strong>Telegram Data:</strong></p>
+        <pre id="telegram-data">Loading...</pre>
+
+        <!-- Version Support Status -->
+        <p>
+          <strong>Version Support:</strong>
+          <span id="version-support-status">Checking API version support...</span>
+        </p>
+
+        <!-- Home Screen Shortcut Status -->
+        <p>
+          <strong>Home Screen Status:</strong>
+          <span id="home-screen-status">Checking Home Screen status...</span>
+        </p>
+      </div>
+    </div>
+  </body>
     <style>
-        body {
-            --bg-color: var(--tg-theme-bg-color);
-            font: 12px/18px "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--tg-theme-text-color);
-            margin: 48px 24px;
-            padding: 0;
-            color-scheme: var(--tg-color-scheme);
-        }
-
-        a {
-            color: var(--tg-theme-link-color);
-        }
-        #viewport {
-            position: fixed;
-            left: 0;
-            right: 0;
-            top: 0;
-            height: var(--tg-viewport-stable-height, 100vh);
-            pointer-events: none;
-            transition: all .2s ease;
-        }
-        #viewport:after {
-            content: '';
-            display: block;
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            border-width: 4px;
-            border-style: solid;
-            border-image: linear-gradient(45deg, rgba(64, 224, 208, .5), rgba(173, 255, 47, .5)) 1;
-        }
-
-        #viewport-params-size,
-        #viewport-params-expand {
-            content: attr(text);
-            position: absolute;
-            display: inline-block;
-            background: var(--tg-theme-link-color, rgb(64, 224, 208));
-            right: 4px;
-            left: auto;
-            font-size: 8px;
-            padding: 4px;
-            vertical-align: top;
-        }
-        #viewport-params-size {
-            top: 4px;
-        }
-        #viewport-params-expand {
-            top: 30px;
-        }
+            /* 
+      Global Styles 
+      Setting up base styles for the entire page including font, background color, 
+      and layout alignment to center the content vertically and horizontally.
+    */
+    body {
+      font-family: Arial, sans-serif; /* Use a clean, sans-serif font */
+      background-color: #ffffff; /* Set a white background */
+      margin: 0; /* Remove default margin */
+      padding: 0; /* Remove default padding */
+      display: flex; /* Use flexbox for alignment */
+      justify-content: center; /* Center content horizontally */
+      align-items: center; /* Center content vertically */
+      min-height: 100vh; /* Make sure the body takes up full viewport height */
+    }
+    
+    /* 
+      Container Styles 
+      Styling the main container to limit its width and align text content.
+    */
+    #app {
+      max-width: 600px; /* Limit the maximum width of the container */
+      width: 90%; /* Adjust width to be responsive on smaller screens */
+      text-align: center; /* Center-align all text within the container */
+    }
+    
+    /* 
+      Header Styles 
+      Style for the main heading of the Mini App.
+    */
+    h1 {
+      font-size: 24px; /* Set a readable font size for the header */
+      color: #333; /* Use a darker gray for better contrast */
+    }
+    
+    /* 
+      Paragraph Styles 
+      General styles for paragraph elements to ensure consistent spacing and color.
+    */
+    p {
+      font-size: 16px; /* Set a standard font size for paragraphs */
+      color: #555; /* Use a medium gray for text color */
+      margin: 10px 0; /* Add consistent vertical spacing */
+    }
+    
+    /* 
+      Preformatted Text Styles 
+      Style for displaying parsed data or JSON in a readable format.
+    */
+    pre {
+      text-align: left; /* Align preformatted text to the left */
+      background-color: #f4f4f4; /* Light gray background for better readability */
+      padding: 10px; /* Add padding for spacing inside the box */
+      border: 1px solid #ddd; /* Add a subtle border for separation */
+      border-radius: 4px; /* Round the corners of the box */
+      overflow-x: auto; /* Allow horizontal scrolling for long content */
+      font-size: 14px; /* Slightly smaller font size for detailed data */
+    }
     </style>
-</head>
-
-<body>
-    <main>
-        <div align="center">
-            <a href="https://ton.org/"><img width="48" src="./assets/tapps.png" alt="logo of telegram web apps"></a>
-        </div>
-        <h1>Modals</h1>
-        <button onclick="Telegram.WebApp.showAlert('Hello World!');">Launch Alert</button>
-        <button onclick="showPopup();">Launch Popup</button>
-
-        <h1>Links</h1>
-        <ul>
-            <li>
-                <a href="javascript:Telegram.WebApp.openTelegramLink('https://t.me/trendingapps');">Open link within Telegram</a>
-            </li>
-            <li>
-                <a href="javascript:Telegram.WebApp.openLink('https://ton.org/');">Open link in external browser</a>
-            </li>
-            <li>
-                <a href="javascript:Telegram.WebApp.openLink('https://telegra.ph/api',{try_instant_view:true});">Open link inside Telegram webview</a>
-            </li>
-        </ul>
-
-        <h1>Buttons</h1>
-        <button onclick="Telegram.WebApp.expand();">Expand Webview</button>
-        <button onclick="toggleMainButton();">Toggle Main Button</button>
-    </main>
-    <div id="viewport"></div>
-    <div id="viewport-params-size"></div>
-    <div id="viewport-params-expand"></div>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script>
-        // Init TWA
-        Telegram.WebApp.ready();
-
-        // Event occurs whenever theme settings are changed in the user's Telegram app (including switching to night mode).
-        Telegram.WebApp.onEvent('themeChanged', function() {
-            document.documentElement.className = Telegram.WebApp.colorScheme;
-        });
-
-        // Show main button
-        Telegram.WebApp.MainButton.setParams({
-            text: 'Main Button'
-        });
-        Telegram.WebApp.MainButton.onClick(function () {
-            Telegram.WebApp.showAlert('Main Button was clicked')
-        });	
-        Telegram.WebApp.MainButton.show();
-
-        // Function to call showPopup API
-        function showPopup() {
-            Telegram.WebApp.showPopup({
-                title: 'Title',
-                message: 'Some message',
-                buttons: [
-                    {id: 'link', type: 'default', text: 'Open ton.org'},
-                    {type: 'cancel'},
-                ]
-            }, function(btn) {
-                if (btn === 'link') {
-                    Telegram.WebApp.openLink('https://ton.org/');
-                }
-            });
-        };
-
-        // Function to toggle main TWA button
-        function toggleMainButton() {
-            if (Telegram.WebApp.MainButton.isVisible) {
-                Telegram.WebApp.MainButton.hide();
-            } else {
-                Telegram.WebApp.MainButton.show();
-            }
-        };
-
-        function setViewportData() {
-            var sizeEl = document.getElementById('viewport-params-size');
-            sizeEl.innerText = 'width: ' + window.innerWidth + ' x ' + 
-                'height: ' + Telegram.WebApp.viewportStableHeight;
-
-            var expandEl = document.querySelector('#viewport-params-expand');
-            expandEl.innerText = 'Is Expanded: ' + (Telegram.WebApp.isExpanded ? 'true' : 'false');
-        }
-
-        Telegram.WebApp.setHeaderColor('secondary_bg_color');
-
-        setViewportData();
-        Telegram.WebApp.onEvent('viewportChanged', setViewportData);
-
-        Telegram.WebApp.onEvent('themeChanged', function() {
-            document.body.setAttribute('style', '--bg-color:' + Telegram.WebApp.backgroundColor);
-        });
-
-    </script>
-
-    <!-- Eruda is console for mobile browsers -->
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
-</body>
 </html>
